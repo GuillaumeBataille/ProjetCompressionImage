@@ -3,7 +3,8 @@
 // Description     :
 // Created On      : Tue Mar 31 13:26:36 2005
 // ----------------------------------------------------------------------------
-
+#ifndef IMAGE_PPM_H
+#define IMAGE_PPM_H
 #include <cstdlib>
 #include <stdio.h>
 #include <string.h>
@@ -221,3 +222,4 @@ void lire_image_pgm(char  nom_image[], OCTET *pt_image, int taille_image)
       }
 }
 /*===========================================================================*/
+#endif
