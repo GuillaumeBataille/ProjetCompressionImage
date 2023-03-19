@@ -207,10 +207,10 @@ namespace ImageAlgorithms
     void ero_dilat_nonBinary(OCTET *ImgIn, OCTET *ImgOut, int nH, int nW, bool color, bool whiteObject, bool erosion)
     {
 
-        //Check si on est sur tu greyscale ou pas
+        // Check si on est sur tu greyscale ou pas
         int facteur = color ? 3 : 1;
         int boucle = color ? 3 : 1;
-        //Boucle sur chaque pixel de l'image
+        // Boucle sur chaque pixel de l'image
         for (int i = 0; i < nH; i++)
         {
             for (int j = 0; j < nW; j++)
@@ -226,7 +226,7 @@ namespace ImageAlgorithms
                     {
                         M = 0;
                     }
-                    //boucle sur tout le voisinage de i-1 j -1 a i+1 j+1 en skippant les bords de l'image
+                    // boucle sur tout le voisinage de i-1 j -1 a i+1 j+1 en skippant les bords de l'image
                     for (int y = std::max(i - 1, 0); y <= std::min(i + 1, nH - 1); y++)
                     {
                         for (int x = std::max(j - 1, 0); x <= std::min(j + 1, nW - 1); x++)
@@ -305,7 +305,7 @@ namespace ImageAlgorithms
         {
             int val = 255 - (abs(ImgDil[i] - ImgEro[i])) / 2;
             ImgOut[i] = (val < S ? 0 : 255); // seuil
-            //ImgOut[i] = val; // sinon juste la différence
+            // ImgOut[i] = val; // sinon juste la différence
         }
 
         free(ImgEro);
@@ -498,39 +498,38 @@ namespace ImageAlgorithms
             }
     }
 
-void flou(OCTET *ImgIn, OCTET *ImgOut, int nH, int nW, bool color)
+    void flou(OCTET *ImgIn, OCTET *ImgOut, int nH, int nW, bool color)
     {
-        //Check si on est sur tu greyscale ou pas
+        // Check si on est sur tu greyscale ou pas
         int facteur = color ? 3 : 1;
         int boucle = color ? 3 : 1;
-        //Boucle sur chaque pixel de l'image
+        // Boucle sur chaque pixel de l'image
 
-
-        for(int i = 0; i < nW * boucle; i++)
+        for (int i = 0; i < nW * boucle; i++)
         {
-            for(int k = 0; k < boucle; k++)
+            for (int k = 0; k < boucle; k++)
             {
-                ImgOut[i + k] = ImgIn[i+k];
-                ImgOut[i + nW * ((nH-1)*boucle) + k] = ImgIn[i + nW * ((nH-1)*boucle) + k];
+                ImgOut[i + k] = ImgIn[i + k];
+                ImgOut[i + nW * ((nH - 1) * boucle) + k] = ImgIn[i + nW * ((nH - 1) * boucle) + k];
             }
         }
-        for(int i = 0; i < nH * boucle; i++)
+        for (int i = 0; i < nH * boucle; i++)
         {
-            for(int k = 0; k < boucle; k++)
+            for (int k = 0; k < boucle; k++)
             {
                 ImgOut[nW * i + k] = ImgIn[nW * i + k];
-                ImgOut[((nW - 1)*boucle) + nW * i + k] = ImgIn[((nW - 1)*boucle) + nW * i + k];
+                ImgOut[((nW - 1) * boucle) + nW * i + k] = ImgIn[((nW - 1) * boucle) + nW * i + k];
             }
         }
 
-        for (int i = 1; i < nH-1; i++)
+        for (int i = 1; i < nH - 1; i++)
         {
-            for (int j = 1; j < nW-1; j++)
+            for (int j = 1; j < nW - 1; j++)
             {
                 for (int k = 0; k < boucle; k++)
                 {
                     float sum = 0;
-                    //boucle sur tout le voisinage de i-1 j -1 a i+1 j+1 en skippant les bords de l'image
+                    // boucle sur tout le voisinage de i-1 j -1 a i+1 j+1 en skippant les bords de l'image
                     for (int y = i - 1; y <= i + 1; y++)
                     {
                         for (int x = j - 1; x <= j + 1; x++)
@@ -547,20 +546,20 @@ void flou(OCTET *ImgIn, OCTET *ImgOut, int nH, int nW, bool color)
 
     void flou_background(OCTET *ImgIn, OCTET *Imgnb, OCTET *ImgOut, int nH, int nW, bool color)
     {
-        //Charger la version flou de l'image
+        // Charger la version flou de l'image
         OCTET *ImgFlou;
         allocation_tableau(ImgFlou, OCTET, nW * nH * (color ? 3 : 1));
         flou(ImgIn, ImgFlou, nH, nW, color);
-        //Check si on est sur tu greyscale ou pas
+        // Check si on est sur tu greyscale ou pas
         int facteur = color ? 3 : 1;
         int boucle = color ? 3 : 1;
-        //Boucle sur chaque pixel de l'image
+        // Boucle sur chaque pixel de l'image
         for (int i = 0; i < nH; i++)
         {
             for (int j = 0; j < nW; j++)
             {
                 int pixelid = (i * nW + j);
-                //Si le pixel appartient au fond
+                // Si le pixel appartient au fond
                 if (Imgnb[pixelid] == 255)
                 {
                     for (int k = 0; k < boucle; k++)
@@ -627,7 +626,7 @@ void flou(OCTET *ImgIn, OCTET *ImgOut, int nH, int nW, bool color)
 
         OCTET *ImgSeuilled;
         allocation_tableau(ImgSeuilled, OCTET, nH * nW);
-        //Parcours des 256 niveau de gris pour tester les seuils
+        // Parcours des 256 niveau de gris pour tester les seuils
         for (int k = 0; k < max; k++)
         {
             seuillage(ImgIn, ImgSeuilled, nH, nW, k);
@@ -672,7 +671,7 @@ void flou(OCTET *ImgIn, OCTET *ImgOut, int nH, int nW, bool color)
         double FPR;
         // C'est ça qui merde//
         findMinFPRate(VP, VN, FP, FN, max, FPR, min_i);
-        //Ecriture
+        // Ecriture
         std::cout << "i minimun : " << min_i << std::endl;
         // niveau de gris - Vrai pos - Faux pos - Vrai neg - Faux neg - Somme des pos/neg - Sensibilité - Specificité - (1-Specificite)
         for (int i = 0; i < max; i++)
@@ -686,36 +685,51 @@ void flou(OCTET *ImgIn, OCTET *ImgOut, int nH, int nW, bool color)
         file.close();
     }
 
-    void gradient(OCTET* ImgIn, OCTET* ImgOut, int nH, int nW) {
-    int gH, gV;
-    for(int i=0; i<nH; i++) {
-        for(int j=0; j<nW; j++) {
-            gH = 0;
-            gV = 0;
-            if(i > 0) {
-                gV -= ImgIn[(i-1)*nW + j];
-            } else {
-                gV -= ImgIn[i*nW + j];
+    void gradient(OCTET *ImgIn, OCTET *ImgOut, int nH, int nW)
+    {
+        int gH, gV;
+        for (int i = 0; i < nH; i++)
+        {
+            for (int j = 0; j < nW; j++)
+            {
+                gH = 0;
+                gV = 0;
+                if (i > 0)
+                {
+                    gV -= ImgIn[(i - 1) * nW + j];
+                }
+                else
+                {
+                    gV -= ImgIn[i * nW + j];
+                }
+                if (i < nH - 1)
+                {
+                    gV += ImgIn[(i + 1) * nW + j];
+                }
+                else
+                {
+                    gV += ImgIn[i * nW + j];
+                }
+                if (j > 0)
+                {
+                    gH -= ImgIn[i * nW + j - 1];
+                }
+                else
+                {
+                    gH -= ImgIn[i * nW + j];
+                }
+                if (j < nW - 1)
+                {
+                    gH += ImgIn[i * nW + j + 1];
+                }
+                else
+                {
+                    gH += ImgIn[i * nW + j];
+                }
+                ImgOut[i * nW + j] = sqrt(gV * gV + gH * gH);
             }
-            if(i < nH-1) {
-                gV += ImgIn[(i+1)*nW + j];
-            } else {
-                gV += ImgIn[i*nW + j];
-            }
-            if(j > 0) {
-                gH -= ImgIn[i*nW + j-1];
-            } else {
-                gH -= ImgIn[i*nW + j];
-            }
-            if(j < nW-1) {
-                gH += ImgIn[i*nW + j+1];
-            } else {
-                gH += ImgIn[i*nW + j];
-            }
-            ImgOut[i*nW+j] = sqrt(gV*gV + gH*gH);
         }
     }
-}
 
     void writeProfilDatFile(OCTET *ImgIn, int nH, int nW, int indice, std::string path, bool isColumn)
     {
@@ -728,183 +742,278 @@ void flou(OCTET *ImgIn, OCTET *ImgOut, int nH, int nW, bool color)
             return;
         }
 
-            std::vector<int> Profil;
-            //Profil d'une colonne
-            if (isColumn)
+        std::vector<int> Profil;
+        // Profil d'une colonne
+        if (isColumn)
+        {
+            Profil = std::vector<int>(nW);
+            for (int y = 0; y < nH; y++)
             {
-                Profil = std::vector<int>(nW);
-                for (int y = 0; y < nH; y++)
-                {
                 Profil[y] = ImgIn[indice + y * nW];
-                }
             }
-            else{
-            //Profil d'une ligne
-                Profil = std::vector<int>(nH);
-                for (int x = 0; x < nH; x++)
-                {
-                Profil[x] = ImgIn[indice * nW + x];
-                }
-            }
-
-
-
-            for (int i = 0; i < Profil.size(); i++)
+        }
+        else
+        {
+            // Profil d'une ligne
+            Profil = std::vector<int>(nH);
+            for (int x = 0; x < nH; x++)
             {
-                file << std::to_string(i) + " " + std::to_string(Profil[i]) + "\n";
+                Profil[x] = ImgIn[indice * nW + x];
             }
-        
+        }
+
+        for (int i = 0; i < Profil.size(); i++)
+        {
+            file << std::to_string(i) + " " + std::to_string(Profil[i]) + "\n";
+        }
 
         file.close();
     }
 
-
-    void reverse(OCTET* ImgIn, OCTET* ImgOut, int size)
+    void reverse(OCTET *ImgIn, OCTET *ImgOut, int size)
     {
-        for(int i=0;i<size;i++)
+        for (int i = 0; i < size; i++)
         {
-            ImgOut[i] = ( ImgIn[i] == 255? 0: 255);
+            ImgOut[i] = (ImgIn[i] == 255 ? 0 : 255);
         }
     }
 
-void hysteresis(OCTET* ImgIn, OCTET* ImgOut, int nH, int nW, int seuilBas, int seuilHaut) {
-    OCTET* ImgInter;
-    allocation_tableau(ImgInter, OCTET, nH*nW);
+    void hysteresis(OCTET *ImgIn, OCTET *ImgOut, int nH, int nW, int seuilBas, int seuilHaut)
+    {
+        OCTET *ImgInter;
+        allocation_tableau(ImgInter, OCTET, nH * nW);
 
-    for(int i = 0; i < nH; i++) {
-        for(int j = 0; j < nW; j++) {
-            int val = ImgIn[i*nW+j];
-            int ret = 0;
-            if(val >= seuilHaut) {
-                ret = 255;
+        for (int i = 0; i < nH; i++)
+        {
+            for (int j = 0; j < nW; j++)
+            {
+                int val = ImgIn[i * nW + j];
+                int ret = 0;
+                if (val >= seuilHaut)
+                {
+                    ret = 255;
+                }
+                ImgInter[i * nW + j] = ret;
             }
-            ImgInter[i*nW+j] = ret;
         }
-    }
 
-    for(int i = 0; i < nH; i++) {
-        for(int j = 0; j < nW; j++) {
-            int valInter = ImgInter[i*nW+j];
-            int valIn = ImgIn[i*nW+j];
-            int ret = valInter;
-            if(valInter == 0 && valIn >= seuilBas) {
-                for(int a = -1; a <= 1; a++) {
-                    for(int b = -1; b <= 1; b++) {
-                        if(i+a >= 0 && i+a < nH && j+b >= 0 && j+b < nW) {
-                            if(ImgInter[(i+a)*nW+j+b] == 255) {
-                                ret = 255;
-                                break; // on arrête dès qu'on trouve un pixel blanc
+        for (int i = 0; i < nH; i++)
+        {
+            for (int j = 0; j < nW; j++)
+            {
+                int valInter = ImgInter[i * nW + j];
+                int valIn = ImgIn[i * nW + j];
+                int ret = valInter;
+                if (valInter == 0 && valIn >= seuilBas)
+                {
+                    for (int a = -1; a <= 1; a++)
+                    {
+                        for (int b = -1; b <= 1; b++)
+                        {
+                            if (i + a >= 0 && i + a < nH && j + b >= 0 && j + b < nW)
+                            {
+                                if (ImgInter[(i + a) * nW + j + b] == 255)
+                                {
+                                    ret = 255;
+                                    break; // on arrête dès qu'on trouve un pixel blanc
+                                }
                             }
                         }
-                    }
-                    if(ret == 255) {
-                        break; // on arrête la boucle si on a déjà trouvé un pixel blanc
+                        if (ret == 255)
+                        {
+                            break; // on arrête la boucle si on a déjà trouvé un pixel blanc
+                        }
                     }
                 }
+                ImgOut[i * nW + j] = ret;
             }
-            ImgOut[i*nW+j] = ret;
         }
-    }
 
-    free(ImgInter);
-}
-//Ecrit dans ImgOut laplacien + 128 pour avoir un visuel et stocke dans ImgLaplacien le laplacien standard (avec les valeurs positive et negative)
-void Laplacien(OCTET *ImgIn, OCTET *ImgOut, int nH, int nW, bool color)
-{
-    // Vérifie si l'image est en couleur ou en niveaux de gris
-    int facteur = color ? 3 : 1;
-    int boucle = color ? 3 : 1;
-
-    // Copie des bords de l'image
-    for(int i = 0; i < nW * boucle; i++)
-    {
-        for(int k = 0; k < boucle; k++)
-        {
-            ImgOut[i + k] = ImgIn[i+k];
-            ImgOut[i + nW * ((nH-1)*boucle) + k] = ImgIn[i + nW * ((nH-1)*boucle) + k];
-        }
+        free(ImgInter);
     }
-    for(int i = 0; i < nH * boucle; i++)
+    // Ecrit dans ImgOut laplacien + 128 pour avoir un visuel et stocke dans ImgLaplacien le laplacien standard (avec les valeurs positive et negative)
+    void Laplacien(OCTET *ImgIn, OCTET *ImgOut, int nH, int nW, bool color)
     {
-        for(int k = 0; k < boucle; k++)
-        {
-            ImgOut[nW * i + k] = ImgIn[nW * i + k];
-            ImgOut[((nW - 1)*boucle) + nW * i + k] = ImgIn[((nW - 1)*boucle) + nW * i + k];
-        }
-    }
+        // Vérifie si l'image est en couleur ou en niveaux de gris
+        int facteur = color ? 3 : 1;
+        int boucle = color ? 3 : 1;
 
-    // Application de l'opérateur laplacien sur chaque pixel de l'image
-    for (int i = 1; i < nH-1; i++)
-    {
-        for (int j = 1; j < nW-1; j++)
+        // Copie des bords de l'image
+        for (int i = 0; i < nW * boucle; i++)
         {
             for (int k = 0; k < boucle; k++)
             {
-                float sum = 0;
-                int pix = facteur * (i * nW + j) + k; // pixel courant
-
-                // Application de l'opérateur laplacien
-                sum += 4 * ImgIn[pix]; // pixel central
-                sum -= ImgIn[pix-facteur]; // gauche
-                sum -= ImgIn[pix+facteur]; // droite
-                sum -= ImgIn[pix-facteur*nW]; // haut
-                sum -= ImgIn[pix+facteur*nW]; // bas
-
-                // Évite les valeurs négatives et supérieures à 255
-                if(sum < 0) sum = 0;
-                if(sum > 255) sum = 255;
-
-                ImgOut[pix] = static_cast<OCTET>(sum);
+                ImgOut[i + k] = ImgIn[i + k];
+                ImgOut[i + nW * ((nH - 1) * boucle) + k] = ImgIn[i + nW * ((nH - 1) * boucle) + k];
             }
         }
-    }
-}
-
-int getNeighbor(float angle, int i, int j, int nW, int nH)
-{
-    if(-M_PI/6 <= angle        && angle < M_PI/6)    return i*nW+(j+1);
-    else if( M_PI/6 <= angle   && angle < M_PI/3)    return (i+1)*nW+(j+1);
-    else if( M_PI/3 <= angle   && angle < 2*M_PI/3)  return (i+1)*nW+j;
-    else if(2*M_PI/3 <= angle  && angle < 5*M_PI/6)  return (i+1)*nW+(j-1);
-    else if(-M_PI/3 <= angle   && angle < -M_PI/6)   return (i-1)*nW+(j+1);
-    else if(-2*M_PI/3 <= angle && angle < -M_PI/3)   return (i-1)*nW+j;
-    else if(-5*M_PI/6 <= angle && angle < -2*M_PI/3) return (i-1)*nW+(j-1);
-    else                                             return i*nW+(j-1);
-}
-void passage_zero(OCTET *ImgLaplacien128, OCTET *ImgLaplacien, OCTET *ImgOut, int nH, int nW)
-{
-    std::vector<int> Laplacien(nH*nW);
-    for (int i = 0; i < nH*nW; i++)
-    {   
-        Laplacien[i] = ImgLaplacien128[i]-128;
-        ImgLaplacien[i] = Laplacien[i];
-    }
-
-    for (int i = 1; i < nH-1; i++)
-    {
-        for (int j = 1; j < nW-1; j++)
+        for (int i = 0; i < nH * boucle; i++)
         {
-            int pix = i * nW + j;
-            int current_pix = Laplacien[pix];
-            //Ai Aj G et D voir enoncé tp
-            int Ai = Laplacien[(i+1)*nW + j] - Laplacien[i*nW+j];
-            int Aj = Laplacien[i*nW+(j+1)] - Laplacien[i*nW+j];
-            int G = std::max(abs(Ai),abs(Aj));
-            //Si Ai = 0 on skip et on mets le pixel a 0
-            if (Ai == 0)
+            for (int k = 0; k < boucle; k++)
             {
-                ImgOut[pix] = 0;
+                ImgOut[nW * i + k] = ImgIn[nW * i + k];
+                ImgOut[((nW - 1) * boucle) + nW * i + k] = ImgIn[((nW - 1) * boucle) + nW * i + k];
             }
-            else
+        }
+
+        // Application de l'opérateur laplacien sur chaque pixel de l'image
+        for (int i = 1; i < nH - 1; i++)
+        {
+            for (int j = 1; j < nW - 1; j++)
             {
-                float D = atan(abs(Aj)/abs(Ai));
-                int voisin = getNeighbor(D,i,j,nW,nH);
-                ImgOut[pix] = (voisin * current_pix < 0 ? G : 0);
+                for (int k = 0; k < boucle; k++)
+                {
+                    float sum = 0;
+                    int pix = facteur * (i * nW + j) + k; // pixel courant
+
+                    // Application de l'opérateur laplacien
+                    sum += 4 * ImgIn[pix];            // pixel central
+                    sum -= ImgIn[pix - facteur];      // gauche
+                    sum -= ImgIn[pix + facteur];      // droite
+                    sum -= ImgIn[pix - facteur * nW]; // haut
+                    sum -= ImgIn[pix + facteur * nW]; // bas
+
+                    // Évite les valeurs négatives et supérieures à 255
+                    if (sum < 0)
+                        sum = 0;
+                    if (sum > 255)
+                        sum = 255;
+
+                    ImgOut[pix] = static_cast<OCTET>(sum);
+                }
             }
         }
     }
-}
+
+    int getNeighbor(float angle, int i, int j, int nW, int nH)
+    {
+        if (-M_PI / 6 <= angle && angle < M_PI / 6)
+            return i * nW + (j + 1);
+        else if (M_PI / 6 <= angle && angle < M_PI / 3)
+            return (i + 1) * nW + (j + 1);
+        else if (M_PI / 3 <= angle && angle < 2 * M_PI / 3)
+            return (i + 1) * nW + j;
+        else if (2 * M_PI / 3 <= angle && angle < 5 * M_PI / 6)
+            return (i + 1) * nW + (j - 1);
+        else if (-M_PI / 3 <= angle && angle < -M_PI / 6)
+            return (i - 1) * nW + (j + 1);
+        else if (-2 * M_PI / 3 <= angle && angle < -M_PI / 3)
+            return (i - 1) * nW + j;
+        else if (-5 * M_PI / 6 <= angle && angle < -2 * M_PI / 3)
+            return (i - 1) * nW + (j - 1);
+        else
+            return i * nW + (j - 1);
+    }
+    void passage_zero(OCTET *ImgLaplacien128, OCTET *ImgLaplacien, OCTET *ImgOut, int nH, int nW)
+    {
+        std::vector<int> Laplacien(nH * nW);
+        for (int i = 0; i < nH * nW; i++)
+        {
+            Laplacien[i] = ImgLaplacien128[i] - 128;
+            ImgLaplacien[i] = Laplacien[i];
+        }
+
+        for (int i = 1; i < nH - 1; i++)
+        {
+            for (int j = 1; j < nW - 1; j++)
+            {
+                int pix = i * nW + j;
+                int current_pix = Laplacien[pix];
+                // Ai Aj G et D voir enoncé tp
+                int Ai = Laplacien[(i + 1) * nW + j] - Laplacien[i * nW + j];
+                int Aj = Laplacien[i * nW + (j + 1)] - Laplacien[i * nW + j];
+                int G = std::max(abs(Ai), abs(Aj));
+                // Si Ai = 0 on skip et on mets le pixel a 0
+                if (Ai == 0)
+                {
+                    ImgOut[pix] = 0;
+                }
+                else
+                {
+                    float D = atan(abs(Aj) / abs(Ai));
+                    int voisin = getNeighbor(D, i, j, nW, nH);
+                    ImgOut[pix] = (voisin * current_pix < 0 ? G : 0);
+                }
+            }
+        }
+    }
+
+    void normalize_image_intensity(OCTET *image, int width, int height)
+    {
+        double mean = 0.0, variance = 0.0;
+
+        // Compute mean
+        for (int i = 0; i < width * height; i++)
+        {
+            mean += image[i];
+        }
+        mean /= width * height;
+
+        // Compute variance
+        for (int i = 0; i < width * height; i++)
+        {
+            variance += (image[i] - mean) * (image[i] - mean);
+        }
+        variance /= width * height;
+
+        // Normalize pixel intensities
+        for (int i = 0; i < width * height; i++)
+        {
+            double new_value = (image[i] - mean) * (128.0 / sqrt(variance)) + 128.0;
+            image[i] = (OCTET)round(new_value);
+        }
+    }
+    void compute_disparity_map(OCTET *left_img, OCTET *right_img, int width, int height, OCTET *disparity_map, int max_disparity)
+    {
+
+        // Create a temporary array to store the intermediate results
+        int num_pixels = width * height;
+        int *temp = new int[num_pixels];
+
+        // Compute the disparity map using block matching with a window size of 9x9
+        int window_size = 20;
+        int half_window = window_size / 2;
+        for (int y = 0; y < height; y++)
+        {
+            for (int x = 0; x < width; x++)
+            {
+                int min_sad = INT32_MAX;
+                int best_disp = 0;
+                for (int d = 0; d < max_disparity; d++)
+                {
+                    int sad = 0;
+                    for (int j = -half_window; j <= half_window; j++)
+                    {
+                        for (int i = -half_window; i <= half_window; i++)
+                        {
+                            int px_left = left_img[(y + j) * width + (x + i)];
+                            int px_right = right_img[(y + j) * width + (x + i - d)];
+                            int diff = abs(px_left - px_right); // calculate SAD instead of SSD
+                            sad += diff;
+                        }
+                    }
+                    if (sad < min_sad)
+                    {
+                        min_sad = sad;
+                        best_disp = d;
+                    }
+                }
+                temp[y * width + x] = best_disp;
+            }
+        }
+
+        // Normalize the disparity map to the range [0, 255]
+        int disp_range = max_disparity - 1;
+        float scale = 255.0f / disp_range;
+        for (int i = 0; i < num_pixels; i++)
+        {
+            disparity_map[i] = (OCTET)(temp[i] * scale);
+        }
+
+        // Free the temporary array
+        delete[] temp;
+    }
 
 }
 
-#endif //CODAGE_IMAGEALGORITHMS_H
+#endif // CODAGE_IMAGEALGORITHMS_H
