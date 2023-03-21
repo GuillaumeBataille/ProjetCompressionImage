@@ -1,6 +1,10 @@
 #include "image_ppm.h"
+#include <algorithm>
+#include <cstdint>
+#include <iomanip>
 #include <vector>
 #include <iostream>
+
 
 int _nTaille, _nH, _nW;
 
@@ -265,7 +269,6 @@ std::vector<OCTET> disparatemap(std::vector<OCTET> ImgIn_L, std::vector<OCTET> I
                     OCTET rightValue = ImgIn_L[rightID];
                     
                     //TODO Comparer les mat de passage gauche et droite pour déduire si oui ou non on à affaire au mếme pixel
-                    
                     test = compareVoisinageLetR(matrice_de_passage_gauche ,matrice_de_passage_droite, range , pourcentage);
                     
                     if (test){
@@ -280,3 +283,134 @@ std::vector<OCTET> disparatemap(std::vector<OCTET> ImgIn_L, std::vector<OCTET> I
     }
     return res;
 }
+
+std::vector<OCTET> compute_disparity_map(std::vector<OCTET>left_img, std::vector<OCTET> right_img, int window_size ,int max_disparity)
+{
+    
+    // Create a temporary array to store the intermediate results
+    int num_pixels = _nH * _nW;
+    int *temp = new int[num_pixels];
+    
+    
+    std::vector<OCTET> disparity_map;
+    disparity_map.resize(num_pixels);
+    // Compute the disparity map using block matching with a window size of 9x9
+    int half_window = window_size / 2;
+    for (int y = 0; y < _nH; y++)
+    {
+        for (int x = 0; x < _nW; x++)
+        {
+            int min_sad = INT32_MAX;
+            int best_disp = 0;
+            for (int d = 0; d < max_disparity; d++)
+            {
+                int sad = 0;
+                for (int j = -half_window; j <= half_window; j++)
+                {
+                    for (int i = -half_window; i <= half_window; i++)
+                    {
+                        int px_left = left_img[(y + j) * _nW + (x + i)];
+                        int px_right = right_img[(y + j ) * _nW + (x + i + d)];
+                        int diff = abs(px_left - px_right); // calculate SAD instead of SSD
+                        sad += diff;
+                    }
+                }
+                if (sad < min_sad)
+                {
+                    min_sad = sad;
+                    best_disp = d;
+                }
+            }
+            temp[y * _nW + x] = best_disp;
+        }
+    }
+    
+    // Normalize the disparity map to the range [0, 255]
+    int disp_range = max_disparity - 1;
+    float scale = 255.0f / disp_range;
+    for (int i = 0; i < num_pixels; i++)
+    {
+        disparity_map[i] = (OCTET)(temp[i] * scale);
+    }
+    
+    // Free the temporary array
+    delete[] temp;
+    
+    return disparity_map;
+    
+}
+double k (int P_1 , int P_2){
+    return std::abs(P_1 - P_2) ; 
+}
+
+
+std::vector<OCTET> edge_distance(std::vector<OCTET>& img_1 , std::vector<OCTET>& img_2 , double threshold)
+{
+    
+    std::vector<OCTET> Edge_map;
+    for (int y = 0 ; y < _nH ; y++){
+        
+        for (int x = 0 ; x < _nW ; x++){
+            
+            if (threshold < k(img_1[y * _nW + x] ,img_2[y - 1 * _nW + x])) Edge_map.push_back(0);
+            else{
+                Edge_map.push_back(std::clamp(img_1[y * _nW + x] + 1 , 0 , 255));
+            }
+            
+        }
+        
+    }
+    return Edge_map;
+}
+/*
+void getRGBDtoOff (std::vector<OCTET> ImgIn, std::vector<OCTET> DisparityMap){
+    
+    std::vector<float> Depthvalues;
+    std::vector<Vec3> Color;
+    std::vector<Vec3> Positions;
+    std::vector<unsigned int> Indices;
+    
+    for (int i = 0 ; i<DisparityMap.size() ; i++) {
+               Depthvalues.push_back(DisparityMap[i] / 255);
+    }
+    
+    float x, y, z, u, v;
+    float Cr , Cv, Cb;
+    float pasX = 1 / ((float) _nW - 1);
+    float pasY = 1 / ((float) _nH - 1);
+    for (int i = 0 ; i< _nH ; i++){
+            u = (i * pasY) - (1. / 2.) ;  
+            for (int j = 0 ; j < _nW ; j++){
+                
+                positions des pixels dans le plan 3D.
+                v = (j * pasX) - (1. / 2.);  
+                x = u;
+                y = v;
+                z = Depthvalues[i*_nW+j];
+                Positions.push_back(Vec3(x,y,z));
+                
+                couleurs des pixels couleurs du plan
+                Cr = ImgIn[i*_nW+j] / 255;
+                Cv = ImgIn[i*_nW+j+1] / 255;
+                Cb = ImgIn[i*_nW+j+2] / 255;
+                Color.push_back(Vec3(Cr,Cv,Cb));                
+            }
+    }
+    for (int i = 0 ; i < _nH-1; i++ ){
+        for (int j = 0 ; j < _nW-1; j++ ){
+            _indices.push_back(i*_nW+j);
+            _indices.push_back(i*_nW+j+1);
+            _indices.push_back((i+1)*_nW+j+1);
+            
+            _indices.push_back(i*_nW+j);
+            _indices.push_back((i+1)*_nW+j+1);
+            _indices.push_back((i+1)*_nW+j);
+        }       
+    }
+    
+    
+    
+    
+}*/
+
+
