@@ -16,7 +16,7 @@ int main(int argc, char* argv[])
     
     
     //std::vector<OCTET> ImgOut = disparatemap(image_gauche , image_droite ,3, 5 , 0.9);
-    std::vector<OCTET> ImgEdgeDist = edge_distance(image_gauche ,image_droite , 0.01);
+    std::vector<OCTET> ImgEdgeDist = edge_distance(image_gauche ,image_droite , 25);
     ecrire_image_pgm(ImgEdgeDist,"IMGEDGEDist.pgm");
     //image_gauche = image4regionsrecursive(image_gauche , _nH , _nW , 1500);
     //image_droite = image4regionsrecursive(image_gauche , _nH , _nW , 1000);

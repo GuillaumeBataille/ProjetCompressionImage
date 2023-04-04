@@ -340,33 +340,48 @@ std::vector<OCTET> compute_disparity_map(std::vector<OCTET>left_img, std::vector
     
 }
 
+std::vector<OCTET> edge( std::vector<OCTET>& img , double threshold){
+    std::vector<OCTET> imgcont;
+    imgcont.resize(_nH * _nW);
+    
+    for (int y = 0 ; y < _nH ; y++){        
+        for (int x = 1 ; x < _nW  ; x++){
+            int dist = std::abs(img[y * _nW  + x -1]  - img[y * _nW  + x] );
+            if (dist > threshold) imgcont[y * _nW  + x - 1]  = dist;
+            else imgcont[y * _nW  + x - 1]  = 0;
+        }
+    }
+    return imgcont;    
+}
+
 double k (int P_1 , int P_2){
     return std::abs(P_1 - P_2) ; 
 }
 
 
+
+
 std::vector<OCTET> edge_distance(std::vector<OCTET>& img_1 , std::vector<OCTET>& img_2 , double threshold)
 {
-    
-    std::vector<OCTET> Edge_map;
+    img_1 = edge(img_1, 3);
+    img_2 = edge(img_2 , 3);
     
     for (int y = 0 ; y < _nH ; y++){        
-        for (int x = 0 ; x < _nW ; x++){
+        for (int x = 1 ; x < _nW  ; x++){
             
-            if (threshold < k(img_1[y * _nW + x] ,img_2[y* _nW + x + 1]))
+            double dist = k(img_1[y * _nW + x - 1] , img_2[y * _nW  + x] ) ; 
+            
+            if (threshold > dist )
             {
-                Edge_map.push_back(std::clamp(img_1[y * _nW + x] + 1 , 0 , 255));
+               img_1[y * _nW + x] = 0;
                 
             }
-            else{
-                Edge_map.push_back(0);
-
+            else if (threshold < dist ){
+               img_1[y * _nW + x - 1] = std::clamp(img_1[y * _nW + x - 1] + 1 , 0 , 255); 
             }
-            
         }
-        
     }
-    return Edge_map;
+    return img_1;
 }
 /*
 void getRGBDtoOff (std::vector<OCTET> ImgIn, std::vector<OCTET> DisparityMap){
