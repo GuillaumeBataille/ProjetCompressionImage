@@ -339,6 +339,7 @@ std::vector<OCTET> compute_disparity_map(std::vector<OCTET>left_img, std::vector
     return disparity_map;
     
 }
+
 double k (int P_1 , int P_2){
     return std::abs(P_1 - P_2) ; 
 }
@@ -348,13 +349,18 @@ std::vector<OCTET> edge_distance(std::vector<OCTET>& img_1 , std::vector<OCTET>&
 {
     
     std::vector<OCTET> Edge_map;
-    for (int y = 0 ; y < _nH ; y++){
-        
+    
+    for (int y = 0 ; y < _nH ; y++){        
         for (int x = 0 ; x < _nW ; x++){
             
-            if (threshold < k(img_1[y * _nW + x] ,img_2[y - 1 * _nW + x])) Edge_map.push_back(0);
-            else{
+            if (threshold < k(img_1[y * _nW + x] ,img_2[y* _nW + x + 1]))
+            {
                 Edge_map.push_back(std::clamp(img_1[y * _nW + x] + 1 , 0 , 255));
+                
+            }
+            else{
+                Edge_map.push_back(0);
+
             }
             
         }
