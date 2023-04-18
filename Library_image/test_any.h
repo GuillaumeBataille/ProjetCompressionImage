@@ -340,49 +340,213 @@ std::vector<OCTET> compute_disparity_map(std::vector<OCTET>left_img, std::vector
     
 }
 
-std::vector<OCTET> edge( std::vector<OCTET>& img , double threshold){
+std::vector<OCTET> edge( std::vector<OCTET>& img , double threshold  ){
     std::vector<OCTET> imgcont;
     imgcont.resize(_nH * _nW);
     
     for (int y = 0 ; y < _nH ; y++){        
         for (int x = 1 ; x < _nW  ; x++){
             int dist = std::abs(img[y * _nW  + x -1]  - img[y * _nW  + x] );
-            if (dist > threshold) imgcont[y * _nW  + x - 1]  = dist;
-            else imgcont[y * _nW  + x - 1]  = 0;
+            if (dist >= threshold) imgcont[y * _nW  + x]  =  std::clamp(dist + 1   , 0 , 255); 
+            else imgcont[y * _nW  + x] = 0;
         }
     }
+    
     return imgcont;    
 }
 
-double k (int P_1 , int P_2){
-    return std::abs(P_1 - P_2) ; 
-}
+
+    std::vector<OCTET> ero_dilat_nonBinary(std::vector<OCTET> ImgIn, bool color, bool whiteObject, bool erosion)
+    {
+        std::vector<OCTET> ImgOut;
+        ImgOut.resize(_nH * _nW);
+        // Check si on est sur tu greyscale ou pas
+        int facteur = color ? 3 : 1;
+        int boucle = color ? 3 : 1;
+        // Boucle sur chaque pixel de l'image
+        for (int i = 0; i < _nH; i++)
+        {
+            for (int j = 0; j < _nW; j++)
+            {
+                for (int k = 0; k < boucle; k++)
+                {
+                    int M;
+                    if ((whiteObject && erosion) || (!whiteObject && !erosion))
+                    {
+                        M = 255;
+                    }
+                    else if ((whiteObject && !erosion) || (!whiteObject && erosion))
+                    {
+                        M = 0;
+                    }
+                    // boucle sur tout le voisinage de i-1 j -1 a i+1 j+1 en skippant les bords de l'image
+                    for (int y = std::max(i - 1, 0); y <= std::min(i + 1, _nH - 1); y++)
+                    {
+                        for (int x = std::max(j - 1, 0); x <= std::min(j + 1, _nW - 1); x++)
+                        {
+                            if ((whiteObject && erosion) || (!whiteObject && !erosion))
+                            {
+                                M = std::min(M, (int)ImgIn[facteur * (y * _nW + x) + k]);
+                            }
+                            else if ((whiteObject && !erosion) || (!whiteObject && erosion))
+                            {
+                                M = std::max(M, (int)ImgIn[facteur * (y * _nW + x) + k]);
+                            }
+                        }
+                    }
+                    ImgOut[facteur * (i * _nW + j) + k] = M;
+                }
+            }
+        }
+        return ImgOut;
+    }
+    
+    void fermetureedge ( std::vector<OCTET>& img_1 , std::vector<OCTET>& img_2, int threshold){
+        img_1 = ero_dilat_nonBinary(edge(img_1 , threshold) , false , true, false) ;
+        img_2 = ero_dilat_nonBinary(edge(img_2 , threshold) , false , true, false);
+        img_1 = ero_dilat_nonBinary(img_1, false , true, true);
+        img_2 = ero_dilat_nonBinary(img_2 , false , true, true);
+    }
 
 
-
-
-std::vector<OCTET> edge_distance(std::vector<OCTET>& img_1 , std::vector<OCTET>& img_2 , double threshold)
+std::vector<OCTET> edge_distance(std::vector<OCTET>& img_1 , std::vector<OCTET>& img_2 )
 {
-    img_1 = edge(img_1, 3);
-    img_2 = edge(img_2 , 3);
+
+    std::vector<OCTET> dist;
+    dist.resize(_nH * _nW);
+    
     
     for (int y = 0 ; y < _nH ; y++){        
-        for (int x = 1 ; x < _nW  ; x++){
+        for (int x = 0 ; x < _nW  ; x++){
             
-            double dist = k(img_1[y * _nW + x - 1] , img_2[y * _nW  + x] ) ; 
             
-            if (threshold > dist )
-            {
-               img_1[y * _nW + x] = 0;
+            if ( img_1[y * _nW + x ] > 0 ){
                 
+                    int d = 1 ;
+                    
+                    for (int j = x ; j < _nW  ; j++){
+                        if (img_2[y * _nW + j] != img_1[y * _nW + x ]){
+                            d += 1;
+                        }
+                        else {
+                            break;     
+                        }  
+                    }
+                    
+                    int couleurdist = 0;
+                    
+                    for (int j = x ; j < _nW  ; j++){
+                        if (img_2[y * _nW + j] != img_1[y * _nW + x ]){
+                            
+                            int couleur = (couleurdist * 255 )/ d ;
+                            
+                            dist[y * _nW + j] = couleur; 
+                            //printf("couleur %d \n" , couleur);
+                            couleurdist += 1 ;
+                        }
+                        else {
+                          
+                            break;     
+                        }  
+                        
+                    }
+                    
+                    
+                }
             }
-            else if (threshold < dist ){
-               img_1[y * _nW + x - 1] = std::clamp(img_1[y * _nW + x - 1] + 1 , 0 , 255); 
+    }
+    return dist;
+}
+
+double h (std::vector<OCTET>& img_1 , int w , int x , int y){
+    
+    double sum = 0 ; 
+    for (int u = (y - w) ; u < (y + w) ; u++){
+        for (int v = (x-w) ; v < (x+w) ; v++){
+            
+           
+            if(u >= 0 and v >= 0){
+                
+        
+                    if (u < _nH and v < _nW){
+                        sum+=img_1[u*_nW+ v];
+                    }
+                    else if (u >= _nH or v >= _nW) {
+                         if (u >= _nH){
+                             sum+=img_1[y*_nW+ v];
+                         }
+                         if (v >= _nW){
+                             sum+=img_1[u*_nW+ x];
+                         }
+                    }
+                    
+            }                
+            else if (u < 0  or v < 0){
+            
+                if (u >= 0){
+                    sum+=img_1[u*_nW+ x];
+                }
+                if (v >= 0){
+                    sum+=img_1[y*_nW+ v];
+                }
             }
         }
     }
-    return img_1;
+    
+    return sum;
+
+    
 }
+
+std::vector<OCTET> homogenparam (std::vector<OCTET>& img_1 , int w , double treshold){
+    std::vector<OCTET> ImgHomogenous;
+    ImgHomogenous.resize(_nH*_nW);
+    
+    double window = std::pow(w+1  , 2);
+    
+    for (int y = 0 ; y < _nH ; y++){
+        for (int x = 0 ; x < _nW ; x++){
+            
+            double sumwindow = (h (img_1 ,w ,x , y) / window) ; 
+            
+            if ( sumwindow < treshold ) {
+                ImgHomogenous[y * _nW + x] = 0 ;
+            }
+            else {
+                
+                ImgHomogenous[y * _nW + x] = 1 ;
+                 printf( "sumwindow %f \n" , sumwindow); 
+            }
+            
+        }
+    }
+    
+    ecrire_image_pgm(ImgHomogenous , "homogenous.pgm");
+    return ImgHomogenous;
+            
+    
+}
+
+std::vector<OCTET> FinalDisparity(std::vector<OCTET>& ImgDisparity, std::vector<OCTET>& ImgEdge, std::vector<OCTET> &ImgHomogenous, int range)
+{
+    std::vector<OCTET> ImgOut;
+    ImgOut.resize(_nH*_nW);
+    for (int y = 0; y < _nH; y++)
+    {
+        for (int x = 0; x < _nW; x++)
+        {
+            int id = y * _nW + x;
+            int d = ImgDisparity[id];
+            int distance = ImgEdge[id];
+            int Homogenous = ImgHomogenous[id];
+            bool gamma = (0 < d && d > range);
+            ImgOut[id] = (ImgHomogenous[id] == 0 && gamma ? distance : d);
+        }
+    }
+    
+    return ImgOut;
+}
+
 /*
 void getRGBDtoOff (std::vector<OCTET> ImgIn, std::vector<OCTET> DisparityMap){
     
