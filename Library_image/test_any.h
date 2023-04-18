@@ -340,14 +340,14 @@ std::vector<OCTET> compute_disparity_map(std::vector<OCTET>left_img, std::vector
     
 }
 
-std::vector<OCTET> edge( std::vector<OCTET>& img , double threshold  ){
+std::vector<OCTET> edge( std::vector<OCTET>& img , double threshold){
     std::vector<OCTET> imgcont;
     imgcont.resize(_nH * _nW);
     
     for (int y = 0 ; y < _nH ; y++){        
         for (int x = 1 ; x < _nW  ; x++){
             int dist = std::abs(img[y * _nW  + x -1]  - img[y * _nW  + x] );
-            if (dist >= threshold) imgcont[y * _nW  + x]  =  std::clamp(dist + 1   , 0 , 255); 
+            if (dist >= threshold) imgcont[y * _nW  + x]  =  std::clamp(img[y * _nW  + x] + 1   , 0 , 255); 
             else imgcont[y * _nW  + x] = 0;
         }
     }
@@ -445,7 +445,6 @@ std::vector<OCTET> edge_distance(std::vector<OCTET>& img_1 , std::vector<OCTET>&
                             couleurdist += 1 ;
                         }
                         else {
-                          
                             break;     
                         }  
                         
@@ -471,14 +470,13 @@ double h (std::vector<OCTET>& img_1 , int w , int x , int y){
                     if (u < _nH and v < _nW){
                         sum+=img_1[u*_nW+ v];
                     }
-                    else if (u >= _nH or v >= _nW) {
-                         if (u >= _nH){
+                         if (u >= _nH and v < _nW){
                              sum+=img_1[y*_nW+ v];
                          }
-                         if (v >= _nW){
+                         if (v >= _nW and u < _nH){
                              sum+=img_1[u*_nW+ x];
                          }
-                    }
+                    
                     
             }                
             else if (u < 0  or v < 0){
@@ -514,7 +512,7 @@ std::vector<OCTET> homogenparam (std::vector<OCTET>& img_1 , int w , double tres
             }
             else {
                 
-                ImgHomogenous[y * _nW + x] = 1 ;
+                ImgHomogenous[y * _nW + x] = 255 ;
                  printf( "sumwindow %f \n" , sumwindow); 
             }
             

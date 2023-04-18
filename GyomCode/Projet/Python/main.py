@@ -12,7 +12,7 @@ stereo = cv2.StereoBM_create(numDisparities=64, blockSize=15)
 # Calculer la carte de disparité
 disparity = stereo.compute(imgL, imgR)
 disparity_normalized = cv2.normalize(
-    disparity, None, alpha=0, beta=1, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_32F)
+    disparity, None, alpha=10, beta=20, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_32F)
 # Calculer le PSNR
 # Calculer le PSNR
 psnr = cv2.PSNR(true_disp, disparity_normalized.astype('uint8'), 255)

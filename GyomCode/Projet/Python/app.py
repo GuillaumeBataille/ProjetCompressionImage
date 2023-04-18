@@ -27,21 +27,24 @@ class DragAndDrop:
         self.canvas1 = Canvas(self.top_frame, bg='gray', width=350, height=350)
         self.canvas1.create_text(175, 175, text='Drop left image', font=(
             'Helvetica', 14), fill='white')
-        self.canvas1.pack(side=LEFT, padx=20, pady=20)
+        self.canvas1.pack(side=LEFT, padx=10, pady=10)
 
         # create canvas for right image
         self.canvas2 = Canvas(self.top_frame, bg='gray', width=350, height=350)
         self.canvas2.create_text(175, 175, text='Drop right image', font=(
             'Helvetica', 14), fill='white')
-        self.canvas2.pack(side=RIGHT, padx=20, pady=20)
+        self.canvas2.pack(side=RIGHT, padx=10, pady=10)
 
         # create canvas for disparity map
         self.canvas3 = Canvas(self.bottom_frame, bg='gray', width=350, height=350)
-        self.canvas3.pack(side=LEFT, padx=20, pady=20)
+        self.canvas3.pack(side=LEFT, padx=10, pady=10)
 
                 # create button to use true disparity
-        self.use_true_disparity_button = Button(self.middle_frame, state = DISABLED,text='Search for the best parameters',command = self.calculate_psnr)
-        self.use_true_disparity_button.pack(pady=20)
+        self.use_true_disparity_button1 = Button(self.middle_frame, state = DISABLED,text='Calculate PSNR',command = self.calculate_psnr)
+        self.use_true_disparity_button1.pack(pady=8)
+        
+        self.use_true_disparity_button2 = Button(self.middle_frame, state = DISABLED,text='Find Best Parameter',command = self.calculate_best_psnr)
+        self.use_true_disparity_button2.pack(pady=8)
 
         # create canvas for true disparity map
         self.canvas4= Canvas(self.bottom_frame, bg='gray', width=350, height=350)
@@ -68,7 +71,7 @@ class DragAndDrop:
 
         # add button
         self.button = Button(self.middle_frame, text='Process images', state=DISABLED, command=self.process_images)
-        self.button.pack(pady=20)
+        self.button.pack(pady=8)
 
         #sliders 
         # create frame for scales
@@ -79,14 +82,19 @@ class DragAndDrop:
         self.block_size_scale = Scale(self.scale_frame, from_=3, to=100, orient=VERTICAL, label="Block Size",
                                     command=self.update_scale, troughcolor='gray')
         self.block_size_scale.set(15)
-        self.block_size_scale.pack(side=LEFT, padx=5, pady=5)
+        self.block_size_scale.pack(side=LEFT, padx=2, pady=2)
 
         # create pre filter cap scale
-        self.prefilter_cap_scale = Scale(self.scale_frame, from_=1, to=128, orient=VERTICAL, label="Pre Filter Cap",
+        self.prefilter_cap_scale = Scale(self.scale_frame, from_=1, to=100, orient=VERTICAL, label="Pre Filter Cap",
                                         command=self.update_scale)
         self.prefilter_cap_scale.set(28)
-        self.prefilter_cap_scale.pack(side=LEFT, padx=5, pady=5)
+        self.prefilter_cap_scale.pack(side=LEFT, padx=2, pady=2)
 
+
+        #add label for psnr
+        self.PSNRlabel = Label(self.master)
+        self.PSNRlabel.pack()
+        
 
         # pack frames
         self.top_frame.pack(side=TOP)
@@ -135,8 +143,8 @@ class DragAndDrop:
         self.canvas4.image = tk_disparity
         self.check_images_loaded()
 
-        self.use_true_disparity_button.config(stat=NORMAL)
-
+        self.use_true_disparity_button1.config(stat=NORMAL)
+        self.use_true_disparity_button2.config(stat=NORMAL)
 
     def update_scale(self,value):
         # Change troughcolor to show that the scale is being moved
@@ -163,23 +171,26 @@ class DragAndDrop:
             self.button.config(state=NORMAL)
         else:
             self.button.config(state=DISABLED)
-
-
+     
     def calculate_psnr(self):
         # Convert the images to arrays
         image1 = self.resized_truedisp
         image2 = self.resized_disp
-
+        
         # Resize image2 to match image1
+        #imagesize = image1.shape[1] *  image1.shape[0] 
         image2 = cv2.resize(image2, (image1.shape[1], image1.shape[0]))
-
+        
         # Calculate PSNR
-        mse = np.mean((image1 - image2) ** 2)
+        mse = np.mean(abs(image1 - image2) ** 2)
         if mse == 0:
-            return float('inf')
-        max_pixel = 255.0
-        psnr = 20 * np.log10(max_pixel / np.sqrt(mse))
-        self.master.title(f"PSNR: {psnr:.2f}")
+            self.PSNRlabel.config(text = "PSNR: same image")
+            return float('-inf')
+        PIXEL_MAX = 255.0
+        psnr =  10 * np.log10(mse)
+        
+        
+        self.PSNRlabel.config(text = "PSNR: " + str(psnr))
         return psnr
 
     def process_images(self):
@@ -195,8 +206,10 @@ class DragAndDrop:
             imgR = cv2.imread(self.image2_path)
             grayL = cv2.cvtColor(imgL, cv2.COLOR_BGR2GRAY)
             grayR = cv2.cvtColor(imgR, cv2.COLOR_BGR2GRAY)
+            
             blocksize = self.block_size_scale.get()
             numDisp = self.prefilter_cap_scale.get()
+            
             stereo = cv2.StereoSGBM_create(numDisparities=numDisp, blockSize=blocksize)
             disparity = stereo.compute(grayL, grayR)
             disparity_normalized = cv2.normalize(
@@ -215,10 +228,44 @@ class DragAndDrop:
             self.canvas3.delete('all')
             self.canvas3.create_image(0, 0, anchor=NW, image=tk_disparity)
             self.canvas3.image = tk_disparity
-
+            
 
         else:
             print('Please drop both images first')
+            
+    def calculate_best_psnr(self):  
+        
+        temppsnr = 9999
+        tempblocksize = 0 
+        tempnumDisp = 0 
+        
+        for i in range(3, 100) :
+            self.block_size_scale.set(i)
+            self.process_images()
+            psnr = self.calculate_psnr()
+            
+            if (psnr < temppsnr):
+                temppsnr = psnr
+                tempblocksize = i
+                
+          
+        self.block_size_scale.set(tempblocksize) 
+        print(temppsnr)
+        for j in range(100 , 1 , -1) :
+            self.prefilter_cap_scale.set(j)
+            self.process_images()
+            psnr = self.calculate_psnr()
+        
+            if (psnr < temppsnr):
+                temppsnr = psnr
+                tempnumDisp = j
+         
+        
+        self.prefilter_cap_scale.set(tempnumDisp)
+        self.PSNRlabel.config(text = "BEST PSNR: " + str(temppsnr))
+      
+        self.process_images()
+            
 if __name__ == '__main__':
     root = TkinterDnD.Tk()
     DragAndDrop(root)
